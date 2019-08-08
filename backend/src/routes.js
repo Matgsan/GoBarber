@@ -15,9 +15,6 @@ import AvailableController from './app/controllers/AvailableController';
 
 const routes = new Router();
 const upload = multer(multerConfig);
-routes.get('/debug-sentry', (req, res) => {
-  throw new Error('My first Sentry error!');
-});
 routes.post('/users', UserController.store);
 routes.use('/users', authMiddleware);
 routes.put('/users', UserController.update);

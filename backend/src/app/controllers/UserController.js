@@ -45,11 +45,11 @@ class UserController {
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation Fails' });
     }
-    const { email: bodyEmail, oldPassword, ...rest } = req.body;
+    const { email, oldPassword } = req.body;
     const user = await User.findByPk(req.userId);
-    if (bodyEmail && bodyEmail !== user.email) {
+    if (email && email !== user.email) {
       const userExists = await User.findOne({
-        where: { email: bodyEmail },
+        where: { email },
       });
       if (userExists) {
         return res.status(400).json({ error: 'User already exists' });
@@ -58,24 +58,16 @@ class UserController {
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: 'Password does not match' });
     }
-    await user.update(
-      Object.assign(
-        { oldPassword, ...rest },
-        bodyEmail ? { email: bodyEmail } : {}
-      )
-    );
-    const { id, name, provider, avatar, email } = await User.findByPk(
-      req.userId,
-      {
-        include: [
-          {
-            model: File,
-            as: 'avatar',
-            attributes: ['id', 'path', 'url'],
-          },
-        ],
-      }
-    );
+    await user.update(req.body);
+    const { id, name, provider, avatar } = await User.findByPk(req.userId, {
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
     return res.json({ id, name, email, provider, avatar });
   }
 }

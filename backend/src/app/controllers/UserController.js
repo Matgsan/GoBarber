@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import User from '../models/User';
+import File from '../models/File';
 
 class UserController {
   async store(req, res) {
@@ -44,11 +45,11 @@ class UserController {
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation Fails' });
     }
-    const { email, oldPassword } = req.body;
+    const { email: bodyEmail, oldPassword, ...rest } = req.body;
     const user = await User.findByPk(req.userId);
-    if (email && email !== user.email) {
+    if (bodyEmail && bodyEmail !== user.email) {
       const userExists = await User.findOne({
-        where: { email },
+        where: { email: bodyEmail },
       });
       if (userExists) {
         return res.status(400).json({ error: 'User already exists' });
@@ -57,9 +58,25 @@ class UserController {
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: 'Password does not match' });
     }
-    const { id, name, provider, avatar_id } = await user.update(req.body);
-
-    return res.json({ id, name, email, provider, avatar_id });
+    await user.update(
+      Object.assign(
+        { oldPassword, ...rest },
+        bodyEmail ? { email: bodyEmail } : {}
+      )
+    );
+    const { id, name, provider, avatar, email } = await User.findByPk(
+      req.userId,
+      {
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['id', 'path', 'url'],
+          },
+        ],
+      }
+    );
+    return res.json({ id, name, email, provider, avatar });
   }
 }
 export default new UserController();

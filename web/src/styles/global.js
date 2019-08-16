@@ -13,9 +13,11 @@ export default createGlobalStyle`
   *:focus {
     outline: 0;
   }
-
-  html, body, #root{
-    height: 100%
+  html, body {
+    height: 100%;
+  }
+   #root {
+    min-height: 100%;
   }
   body {
     -webkit-font-smoothing: antialiased

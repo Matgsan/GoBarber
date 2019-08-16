@@ -5,7 +5,7 @@ import User from '../models/User';
 
 class ScheduleController {
   async index(req, res) {
-    const { date } = req.body;
+    const { date } = req.query;
     const parsedDate = parseISO(date);
     const appointments = await Appointment.findAll({
       where: {
